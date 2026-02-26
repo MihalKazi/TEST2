@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: 'Courier Prime', monospace;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.App {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* --- SHARED FULLSCREEN OVERLAY --- */
+/* Used for both System Boot and Typing phases to center the card */
+.fullscreen-overlay, .background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #111 0%, #000 100%);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 1.0s ease-in-out;
+}
+
+/* --- THE UNIFIED TERMINAL CARD --- */
+/* Applies to both .terminal-box (Hacker) and .typed-text (Abida) */
+.terminal-box, .typed-text {
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 255, 136, 0.1);
+  
+  padding: 40px;
+  border-radius: 12px;
+  color: #00ff88;
+  font-size: 1.1rem; /* Adjusted for better fit */
+  line-height: 1.6;
+  white-space: pre-wrap;
+  min-width: 320px;
+  max-width: 85%;
+  font-family: 'Courier Prime', monospace;
+  
+  /* Flex layout for the terminal lists */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Ensure individual lines inside the box look correct */
+.terminal-box div, .typed-line {
+  min-height: 1.2em;
+  text-shadow: 0 0 5px rgba(0, 255, 136, 0.4);
+}
+
+/* --- CURSORS --- */
+.cursor, .typed-cursor {
+  display: inline-block;
+  width: 10px;
+  height: 1.2em;
+  background-color: #00ff88;
+  margin-left: 5px;
+  vertical-align: middle;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.8);
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* --- CONTROLS & HINTS (Your Custom Styles) --- */
+.hint-overlay {
+  position: absolute;
+  bottom: 120px;
+  width: 100%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.2rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  z-index: 20;
+  animation: fadeInOut 3s infinite;
+  pointer-events: none;
+  font-family: 'Courier Prime', monospace;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.wish-button {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  
+  background: rgba(0, 255, 136, 0.1); /* Slight green tint to match theme */
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  color: #00ff88;
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+  transition: all 0.3s ease;
+  
+  animation: buttonPulse 2s infinite;
+}
+
+.wish-button:hover {
+  background: rgba(0, 255, 136, 0.2);
+  box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
+  transform: translateX(-50%) scale(1.05);
+}
+
+.wish-button:active {
+  background: rgba(0, 255, 136, 0.3);
+  transform: translateX(-50%) scale(0.95);
+}
+
+@keyframes buttonPulse {
+  0% { box-shadow: 0 0 10px rgba(0, 255, 136, 0.1); }
+  50% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.3); }
+  100% { box-shadow: 0 0 10px rgba(0, 255, 136, 0.1); }
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.9; }
+}
+
+/* --- MOBILE ADJUSTMENTS --- */
+@media (max-width: 768px) {
+  .terminal-box, .typed-text {
+    font-size: 0.95rem;
+    padding: 25px;
+    width: 85%;
+    max-width: 90%;
+  }
+  
+  .hint-overlay {
+    font-size: 0.9rem;
+    bottom: 110px;
+  }
+
+  .wish-button {
+    bottom: 40px;
+    padding: 15px 30px;
+    font-size: 1rem;
+    width: 80%;
+  }
+}
+/* Mobile Rotation Overlay - PC FRIENDLY */
+.landscape-warning {
+  display: none; /* Hidden by default on PC */
+}
+
+/* Only trigger on devices that are BOTH small AND have a touch screen (Mobile/Tablets) */
+@media screen and (max-width: 900px) and (orientation: portrait) and (pointer: coarse) {
+  .landscape-warning {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(15px);
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 30px;
+  }
+}
+
+.phone-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
+  animation: rotatePhone 2s ease-in-out infinite;
+}
+
+@keyframes rotatePhone {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(90deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.soft-hint {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 255, 0, 0.2);
+  border: 1px solid #0f0;
+  color: #0f0;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-family: monospace;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
