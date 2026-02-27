@@ -1,6 +1,5 @@
-import React, { Component } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, OrbitControls, useProgress, useGLTF, useTexture, Html } from "@react-three/drei";
+import { Environment, OrbitControls, useProgress, useGLTF, useTexture } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing"; 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Group } from "three";
@@ -23,51 +22,19 @@ import { EarthIntro } from "./components/EarthIntro";
 
 import "./App.css";
 
-// --- ERROR BOUNDARY (PREVENTS THE WHITE SCREEN OF DEATH) ---
-class CanvasErrorBoundary extends Component<{children: React.ReactNode}, {hasError: boolean}> {
-  constructor(props: any) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-  componentDidCatch(error: any, errorInfo: any) {
-    console.error("3D Canvas crashed:", error, errorInfo);
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#0f0', textAlign: 'center', fontFamily: 'monospace', zIndex: 999 }}>
-          <h2>[ SYSTEM FAILURE ]</h2>
-          <p>3D Scene Failed to Load. Cache corrupted or network dropped.</p>
-          <button onClick={() => window.location.reload()} style={{ marginTop: '20px', padding: '10px 20px', background: 'transparent', border: '1px solid #0f0', color: '#0f0', cursor: 'pointer' }}>
-            REBOOT SYSTEM
-          </button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
 // --- 1. DRACO & ASSET PRELOADING ---
 const DRACO_URL = "https://www.gstatic.com/draco/versioned/decoders/1.5.5/";
 
 const preloadAssets = () => {
-  try {
-    useGLTF.preload("/candle.glb", DRACO_URL);
-    useGLTF.preload("/cake.glb", DRACO_URL);
-    useGLTF.preload("/table.glb", DRACO_URL);
-    useGLTF.preload("/picture_frame.glb", DRACO_URL);
-    useTexture.preload("/frame1.jpg");
-    useTexture.preload("/frame2.jpg");
-    useTexture.preload("/frame3.jpg");
-    useTexture.preload("/frame4.jpg");
-    useTexture.preload("/card.png");
-  } catch (err) {
-    console.error("Preload error, but continuing...", err);
-  }
+  useGLTF.preload("/candle.glb", DRACO_URL);
+  useGLTF.preload("/cake.glb", DRACO_URL);
+  useGLTF.preload("/table.glb", DRACO_URL);
+  useGLTF.preload("/picture_frame.glb", DRACO_URL);
+  useTexture.preload("/frame1.jpg");
+  useTexture.preload("/frame2.jpg");
+  useTexture.preload("/frame3.jpg");
+  useTexture.preload("/frame4.jpg");
+  useTexture.preload("/card.png");
 };
 
 // --- HOLODECK DATA ---
@@ -297,7 +264,6 @@ function AnimatedScene({ isPlaying, onBackgroundFadeChange, onEnvironmentProgres
     );
 }
 
-
 const ORBIT_TARGET = new Vector3(0, 1, 0);
 const FINAL_CAM_POS_BASE = new Vector3(3, 1, 0).add(ORBIT_TARGET); 
 const START_CAM_TARGET = new Vector3(-40, 12, 0); 
@@ -518,41 +484,35 @@ export default function App() {
           <button className="wish-button" onClick={blowCandle}>Make a Wish</button>
       </div>
       
-      
       {(appStage === 'preparing' || appStage === 'party') && (
-        <CanvasErrorBoundary>
-          <Canvas 
-            shadows dpr={[1, 1.5]}
-            gl={{ antialias: false, powerPreference: "high-performance", alpha: false, stencil: false, depth: true }}
-            style={{ opacity: appStage === 'party' ? 1 : 0, transition: 'opacity 2s ease' }}
-            onPointerMissed={() => { setFocusTarget(null); setActiveCardId(null); setActiveMemory(null); }}
-          >
-            {/* INSTEAD OF FALLBACK NULL, SHOW A LOADING TEXT SO YOU KNOW IT'S NOT BROKEN */}
-            <Suspense fallback={<Html center><div style={{ color: '#0f0', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>[ DOWNLOADING 3D ASSETS... ]</div></Html>}>
-              
-              <AnimatedScene 
-                  isPlaying={appStage === 'party'} 
-                  candleLit={isCandleLit} 
-                  onBackgroundFadeChange={() => {}} 
-                  onEnvironmentProgressChange={setEnvironmentProgress} 
-                  onAnimationComplete={() => setHasAnimationCompleted(true)} 
-                  cards={[{ id: "confetti", image: "/card.png", position: [1, 0.085, -2], rotation: [-Math.PI / 2, 0, Math.PI / 3] }]} 
-                  activeCardId={activeCardId}
-                  onToggleCard={(id: string) => setActiveCardId(prev => (prev === id ? null : id))}
-                  fireworksActive={fireworksActive} 
-                  onPhotoClick={handlePhotoSelect}
-              />
-              <FireworkFlash active={fireworksActive} envProgress={environmentProgress} />
-              <Environment files={["/background.hdr"]} background environmentIntensity={0.2 * environmentProgress} backgroundIntensity={0.1 * environmentProgress} />
-              <EnvironmentBackgroundController intensity={0.1 * environmentProgress} />
-              <CinematiceCameraControls sceneStarted={appStage === 'party'} focusTarget={focusTarget} />
-              <EffectComposer enableNormalPass={false} multisampling={0}>
-                  <Bloom luminanceThreshold={1} mipmapBlur intensity={1.2} radius={0.3} />
-              </EffectComposer>
-
-            </Suspense>
-          </Canvas>
-        </CanvasErrorBoundary>
+        <Canvas 
+          shadows dpr={[1, 1.5]}
+          gl={{ antialias: false, powerPreference: "high-performance", alpha: false, stencil: false, depth: true }}
+          style={{ opacity: appStage === 'party' ? 1 : 0, transition: 'opacity 2s ease' }}
+          onPointerMissed={() => { setFocusTarget(null); setActiveCardId(null); setActiveMemory(null); }}
+        >
+          <Suspense fallback={null}>
+            <AnimatedScene 
+                isPlaying={appStage === 'party'} 
+                candleLit={isCandleLit} 
+                onBackgroundFadeChange={() => {}} 
+                onEnvironmentProgressChange={setEnvironmentProgress} 
+                onAnimationComplete={() => setHasAnimationCompleted(true)} 
+                cards={[{ id: "confetti", image: "/card.png", position: [1, 0.085, -2], rotation: [-Math.PI / 2, 0, Math.PI / 3] }]} 
+                activeCardId={activeCardId}
+                onToggleCard={(id: string) => setActiveCardId(prev => (prev === id ? null : id))}
+                fireworksActive={fireworksActive} 
+                onPhotoClick={handlePhotoSelect}
+            />
+            <FireworkFlash active={fireworksActive} envProgress={environmentProgress} />
+            <Environment files={["/background.hdr"]} background environmentIntensity={0.2 * environmentProgress} backgroundIntensity={0.1 * environmentProgress} />
+            <EnvironmentBackgroundController intensity={0.1 * environmentProgress} />
+            <CinematiceCameraControls sceneStarted={appStage === 'party'} focusTarget={focusTarget} />
+            <EffectComposer enableNormalPass={false} multisampling={0}>
+                <Bloom luminanceThreshold={1} mipmapBlur intensity={1.2} radius={0.3} />
+            </EffectComposer>
+          </Suspense>
+        </Canvas>
       )}
     </div>
   );
