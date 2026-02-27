@@ -242,7 +242,6 @@ function AnimatedScene({ isPlaying, onBackgroundFadeChange, onEnvironmentProgres
         <>
             <group ref={tableGroup}>
                 <Table />
-                {/* Updated onClick to pass the image path for memory lookup */}
                 <PictureFrame image="/frame2.jpg" position={[0, 0.735, 3]} rotation={[0, 5.6, 0]} scale={0.75} onClick={(e: any) => { e.stopPropagation(); onPhotoClick(new Vector3(0, 1, 3), "/frame2.jpg"); }} />
                 <PictureFrame image="/frame3.jpg" position={[0, 0.735, -3]} rotation={[0, 4.0, 0]} scale={0.75} onClick={(e: any) => { e.stopPropagation(); onPhotoClick(new Vector3(0, 1, -3), "/frame3.jpg"); }} />
                 <PictureFrame image="/frame4.jpg" position={[-1.5, 0.735, 2.5]} rotation={[0, 5.4, 0]} scale={0.75} onClick={(e: any) => { e.stopPropagation(); onPhotoClick(new Vector3(-1.5, 1, 2.5), "/frame4.jpg"); }} />
@@ -252,14 +251,13 @@ function AnimatedScene({ isPlaying, onBackgroundFadeChange, onEnvironmentProgres
                 ))}
             </group>
             <group ref={cakeGroup}><Cake /></group>
-            {/* Added onClick to Candle for TAP interaction */}
             <group ref={candleGroup} onClick={(e) => { e.stopPropagation(); if(candleLit) (e as any).onBlow?.(); }}>
                 <Candle isLit={candleLit} scale={0.5} position={[0.5, 0.5, 0.5]} rotation={[0.2, 0, -0.2]} />
             </group>
             {!candleLit && !fireworksActive && (
                 <points ref={smokeRef} position={[0, 0.8, 0]}><sphereGeometry args={[0.05, 6, 6]} /><pointsMaterial color="#ffffff" transparent opacity={0.4} size={0.03} /></points>
             )}
-            <Fireworks isActive={fireworksActive} origin={[0, 10, 0]} /><Fireflies isActive={fireworksActive} /><Moon isActive={fireworksActive} /><Aurora isActive={fireworksActive} /><GoldenText isActive={fireworksActive} />
+            <Fireworks isActive={fireworksActive} /><Fireflies isActive={fireworksActive} /><Moon isActive={fireworksActive} /><Aurora isActive={fireworksActive} /><GoldenText isActive={fireworksActive} />
         </>
     );
 }
@@ -294,7 +292,6 @@ function CinematiceCameraControls({ sceneStarted, focusTarget }: { sceneStarted:
       camera.lookAt(new Vector3().lerpVectors(START_CAM_TARGET, ORBIT_TARGET, ease));
       if (progress >= 1) setIsSweeping(false);
     } else if (focusTarget && controlsRef.current) {
-      // Zoom logic: fly closer to the specific frame
       const direction = new Vector3().subVectors(camera.position, focusTarget).normalize();
       const zoomPos = focusTarget.clone().add(direction.multiplyScalar(2.0)); 
       camera.position.lerp(zoomPos, 0.07);
@@ -340,20 +337,17 @@ export default function App() {
     ambientAudioRef.current = new Audio("/ambient_night.mp3");
     backgroundAudioRef.current = new Audio("/music.mp3");
     
-    // --- AMBIENT SETTINGS ---
     if (ambientAudioRef.current) { 
         ambientAudioRef.current.loop = true; 
         ambientAudioRef.current.volume = 0.5; 
     }
 
-    // --- MUSIC SETTINGS ---
     if (backgroundAudioRef.current) {
-        backgroundAudioRef.current.loop = true; // Looping enabled as requested
+        backgroundAudioRef.current.loop = true;
         backgroundAudioRef.current.volume = 0.8;
     }
   }, []);
 
-  // --- TYPING EFFECT FOR HOLODECK ---
   useEffect(() => {
     if (activeMemory) {
       setTypedMemory("");
@@ -438,7 +432,6 @@ export default function App() {
         </div>
       )}
 
-      {/* --- MEMORY HOLODECK UI OVERLAY --- */}
       {activeMemory && (
         <div className="memory-overlay" style={{
           position: 'fixed', bottom: '20%', left: '50%', transform: 'translateX(-50%)',
@@ -505,7 +498,10 @@ export default function App() {
                 onPhotoClick={handlePhotoSelect}
             />
             <FireworkFlash active={fireworksActive} envProgress={environmentProgress} />
-            <Environment files={["/background.hdr"]} background environmentIntensity={0.2 * environmentProgress} backgroundIntensity={0.1 * environmentProgress} />
+            
+            {/* --- EMERGENCY MOBILE FIX #1: Replaced custom .hdr with built-in lightweight preset --- */}
+            <Environment preset="night" background environmentIntensity={0.2 * environmentProgress} backgroundIntensity={0.1 * environmentProgress} />
+            
             <EnvironmentBackgroundController intensity={0.1 * environmentProgress} />
             <CinematiceCameraControls sceneStarted={appStage === 'party'} focusTarget={focusTarget} />
             <EffectComposer enableNormalPass={false} multisampling={0}>

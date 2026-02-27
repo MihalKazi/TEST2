@@ -49,13 +49,8 @@ export function BirthdayCard({
   const [isHovered, setIsHovered] = useState(false);
 
   // --- RESPONSIVE LOGIC ---
-  // If width is less than 1000px (laptops/tablets), we make the card "pop" more.
   const isSmallScreen = size.width < 1100;
-  
-  // 1. Move it closer to camera on smaller screens
   const dynamicDistance = isSmallScreen ? 0.85 : 1.2;
-  
-  // 2. Increase the physical size of the card when active
   const activeScaleFactor = isSmallScreen ? 1.35 : 1.1;
 
   useCursor(isHovered || isActive, "pointer");
@@ -63,7 +58,11 @@ export function BirthdayCard({
   const texture = useTexture(image);
   useEffect(() => {
     texture.colorSpace = SRGBColorSpace;
-    texture.anisotropy = 8; // Higher quality for text/images
+    
+    // --- EMERGENCY MOBILE FIX #2: Lowered anisotropy from 8 to 2 ---
+    // This stops the mobile GPU from doing extreme texture filtering
+    texture.anisotropy = 2; 
+    
   }, [texture]);
 
   const defaultPosition = useMemo(() => new Vector3(...tablePosition), [tablePosition]);
@@ -90,12 +89,10 @@ export function BirthdayCard({
         ? BASE_SCALE * activeScaleFactor 
         : BASE_SCALE;
     
-    // Lerp the scale for a smooth "pop-up" effect
     meshScaler.scale.lerp(new Vector3(targetScale, targetScale, targetScale), 0.15);
 
     // --- MOVEMENT LOGIC ---
     if (isActive) {
-      // Follow Camera
       positionTarget.copy(camera.position);
       positionTarget.add(
         tmpDirection
@@ -109,7 +106,6 @@ export function BirthdayCard({
       }
       rotationTarget.copy(camera.quaternion);
     } else {
-      // Stay on Table
       positionTarget.copy(defaultPosition);
       if (isHovered) positionTarget.y += HOVER_LIFT;
       rotationTarget.copy(defaultQuaternion);
@@ -139,7 +135,6 @@ export function BirthdayCard({
 
   return (
     <group ref={groupRef}>
-      {/* Inner group used strictly for the scaling animation */}
       <group ref={meshScalerRef} scale={BASE_SCALE}>
         <mesh
           onPointerOver={handlePointerOver}
@@ -157,13 +152,11 @@ export function BirthdayCard({
           />
         </mesh>
 
-        {/* BACK OF CARD */}
         <mesh position={[0, 0, -0.001]} rotation={[0, Math.PI, 0]}>
           <planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />
           <meshStandardMaterial color="#fcfaff" roughness={0.5} />
         </mesh>
 
-        {/* CARD DEPTH/BORDER EFFECT */}
         <mesh position={[0, 0, -0.0008]}>
           <planeGeometry args={[CARD_WIDTH * 0.99, CARD_HEIGHT * 0.99]} />
           <meshStandardMaterial
